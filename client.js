@@ -4,7 +4,7 @@ const connectors = [[{x: 1, y: 1}, {x: 1, y: 2}], [{x: 1, y: 2}, {x: 1, y: 3}], 
 
 // ===============================================================================================
 
-// Convert RL to LR and BU to UB:
+// Convert RL to LR and BU to UB (Yuck):
 function getStandardEdge(edge) {
   if (edge[0].x == edge[1].x) {
     // Vertical:
@@ -49,10 +49,10 @@ function edgeInArray(e, arr) {
 function computeEdges(vtx) {
   // Just leave the negatives for now:
   return [
-    [{x: vtx.x - 1, y: vtx.y}, {x: vtx.x, y: vtx.y}],
-    [{x: vtx.x, y: vtx.y}, {x: vtx.x + 1, y: vtx.y}],
-    [{x: vtx.x, y: vtx.y - 1}, {x: vtx.x, y: vtx.y}],
-    [{x: vtx.x, y: vtx.y}, {x: vtx.x, y: vtx.y + 1}],
+    [{x: vtx.x - 1, y: vtx.y    }, {x: vtx.x    , y: vtx.y    }],
+    [{x: vtx.x    , y: vtx.y    }, {x: vtx.x + 1, y: vtx.y    }],
+    [{x: vtx.x    , y: vtx.y - 1}, {x: vtx.x    , y: vtx.y    }],
+    [{x: vtx.x    , y: vtx.y    }, {x: vtx.x    , y: vtx.y + 1}],
   ];
 }
 
@@ -65,33 +65,41 @@ function areConnected(v1, v2, occ_edges, path=[], checked=[]) {
   // Exit condition:
   const edges1 = computeEdges(v1);
   const edges2 = computeEdges(v2);
-  edges1.forEach(e => {
-    edges2.forEach(e2 => {
+  for (let i=0; i < edges1.length; i++) {
+    for (let j=0; j < edges2.length; j++) {
+      const e = edges1[i];
+      const e2 = edges2[j];
       if (edgeInArray(e, checked) && edgeInArray(e2, checked)) {
         console.log('yeaaa');
         return true;
       }
-    });
-  });
+    }
+  }
+
 
   // Dead end:
   while (checkForImportantEdges(v1, occ_edges, checked).length == 0) {
     // console.log(path);
+
+    if (path.length == 0) {
+      console.log('aha');
+      return false;
+    }
+
     const prevEdge = path.pop();
+
     // console.log(path);
     // console.log(prevEdge);
     const prevPoint = getOtherPoint(v1, prevEdge);
     v1 = prevPoint;
     // console.log(v1);
-    if (path.length == 0) {
-      console.log('aha');
-      // return false;
-    }
+
   }
 
   const important_edges = checkForImportantEdges(v1, occ_edges, checked);
 
-  important_edges.forEach(edge => {
+  for (let i=0; i < important_edges.length; i++) {
+    let edge = important_edges[i];
     const other = getOtherPoint(v1, edge);
     edge = getStandardEdge(edge);
 
@@ -99,8 +107,9 @@ function areConnected(v1, v2, occ_edges, path=[], checked=[]) {
     path.push(edge);
     checked.push(edge);
 
-    areConnected(other, v2, occ_edges, path, checked);
-  });
+    return areConnected(other, v2, occ_edges, path, checked);
+  }
+
 
 }
 
