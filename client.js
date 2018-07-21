@@ -4,6 +4,29 @@ const connectors = [[{x: 1, y: 1}, {x: 1, y: 2}], [{x: 1, y: 2}, {x: 1, y: 3}], 
 
 // ===============================================================================================
 
+function drawPentagon(x, y, r) {
+  let canv = document.getElementById('canvas');
+  let ctx = canv.getContext('2d');
+  ctx.fillStyle = 'red';
+  ctx.fillRect(0,0,300,300);
+
+  let angle = Math.PI * 2 / 5;
+  ctx.beginPath();
+  ctx.moveTo(x + Math.cos(angle * 0     - Math.PI/2) * r, y + Math.sin(angle * 0     - Math.PI/2) * r);
+
+  for (let i=0; i < 5; i ++) {
+    ctx.lineTo(x + Math.cos(angle * (i+1) - Math.PI/2) * r, y + Math.sin(angle * (i+1) - Math.PI/2) * r);
+    ctx.stroke();
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'green';
+  ctx.fill();
+}
+
+// drawPentagon();
+
+window.onload = () => drawPentagon(150, 150, 20);
+
 // Convert RL to LR and BU to UB (Yuck):
 function getStandardEdge(edge) {
   if (edge[0].x == edge[1].x) {
@@ -34,7 +57,6 @@ function getOtherPoint(point, edge) {
 // ===============================================================================================
 
 function edgeInArray(e, arr) {
-  // console.log(e, arr);
   e = getStandardEdge(e);
   if (e.length < 1) return false;
   for (let i=0; i < arr.length; i++) {
@@ -60,7 +82,6 @@ function computeEdges(vtx) {
 
 function areConnected(v1, v2, occ_edges, path=[], checked=[]) {
   occ_edges = occ_edges.map(e => getStandardEdge(e));
-  // console.log(checked);
 
   // Exit condition:
   const edges1 = computeEdges(v1);
@@ -71,37 +92,29 @@ function areConnected(v1, v2, occ_edges, path=[], checked=[]) {
       const e2 = edges2[j];
       if (edgeInArray(e, checked) && edgeInArray(e2, checked)) {
         console.log('yeaaa');
-        return true;
+        return path;
       }
     }
   }
 
-
   // Dead end:
   while (checkForImportantEdges(v1, occ_edges, checked).length == 0) {
-    // console.log(path);
-
+    // don't think this is quite correct:
     if (path.length == 0) {
       console.log('aha');
       return false;
     }
-
     const prevEdge = path.pop();
-
-    // console.log(path);
-    // console.log(prevEdge);
     const prevPoint = getOtherPoint(v1, prevEdge);
     v1 = prevPoint;
-    // console.log(v1);
-
   }
 
   const important_edges = checkForImportantEdges(v1, occ_edges, checked);
 
   for (let i=0; i < important_edges.length; i++) {
     let edge = important_edges[i];
-    const other = getOtherPoint(v1, edge);
     edge = getStandardEdge(edge);
+    const other = getOtherPoint(v1, edge);
 
     // Two arrays: one tracks current path, one tracks all visited edges.
     path.push(edge);
@@ -109,15 +122,11 @@ function areConnected(v1, v2, occ_edges, path=[], checked=[]) {
 
     return areConnected(other, v2, occ_edges, path, checked);
   }
-
-
 }
 
 // ===============================================================================================
 
 function checkForImportantEdges(vtx, occ_edges, checked) {
-  // console.log(vtx);
-  // console.log(computeEdges(vtx).filter(e => edgeInArray(e, occ_edges)));
   return computeEdges(vtx).filter(e => edgeInArray(e, occ_edges)).filter(e => !edgeInArray(e, checked));
 }
 
